@@ -46,11 +46,12 @@ import PropTypes from 'prop-types'
 import { Button } from 'react-bootstrap'
 import WelcomeCss from '../../assets/css/Welcome.css'
 
-export default class Welcome extends Component {
+class Welcome extends Component {
     constructor(props) {
         super(props);
         this.state = { myName: "Nguyen Tien Dung", count: 0, form: { email: "", password: "" }, isShowForm: false };
         this.year = 2022;
+        this.myRef = React.createRef();
         this.courses = [
             {
                 name: "php",
@@ -80,6 +81,7 @@ export default class Welcome extends Component {
                 count: --state.count
             }
         })
+        this.props.afterChangeCount(this.state.count)
     }
     increase() {
         this.setState((state) => {
@@ -88,6 +90,7 @@ export default class Welcome extends Component {
                 count: ++state.count
             }
         })
+        this.props.afterChangeCount(this.state.count)
     }
     changeColor() {
         var welcome = document.getElementById("welcome");
@@ -96,10 +99,10 @@ export default class Welcome extends Component {
 
     // Life cycle
     componentWillMount() {
-        console.log('component will mount');
+        // console.log('component will mount');
     }
     componentDidMount() {
-        console.log("component did mount");
+        // console.log("component did mount");
     }
     shouldComponentUpdate(nextProps, nextState) {
         console.log(nextState)
@@ -107,19 +110,20 @@ export default class Welcome extends Component {
         return true;
     }
     componentWillUpdate() {
-        console.log('component will update');
+        // console.log('component will update');
     }
     componentDidUpdate() {
-        console.log('component did update');
+        // console.log('component did update');
     }
     componentWillUnmount() { // as mounted in vue
-        console.log('component will unmount')
-
+        // console.log('component will unmount')
     }
+    
 
     // Form
     submit(e) {
         e.preventDefault();
+        this.focusInput();
         console.log(this.state.form);
     }
     reset() {
@@ -127,6 +131,9 @@ export default class Welcome extends Component {
             ...state,
             form: { email: "", password: "" }
         }))
+    }
+    focusInput() {
+        this.myRef.current.focus();
     }
 
 
@@ -144,7 +151,7 @@ export default class Welcome extends Component {
                 <button onClick={() => { this.changeColor() }}>Change color</button>
                 <button onClick={() => { this.forceUpdate() }}>Force update (Re-render)</button>
 
-                <hr class="w-100"/>
+                <hr class="w-100" />
                 <h3>Form</h3>
                 <Button onClick={() => {
                     this.setState(state => ({
@@ -156,7 +163,7 @@ export default class Welcome extends Component {
                     <form onSubmit={(event) => {
                         this.submit(event);
                     }}>
-                        <input class="w-100" type="email" value={this.state.form.email} onChange={(event) => {
+                        <input ref={this.props.innerRef} class="w-100" type="email" value={this.state.form.email} onChange={(event) => {
                             this.setState((state) => {
                                 var newState = state;
                                 newState.form.email = event.target.value;
@@ -175,13 +182,13 @@ export default class Welcome extends Component {
                             <Button variant="success" className="mx-2 my-2" onClick={this.reset.bind(this)}>Reset</Button>
                         </div>
                     </form> : ""}
-                    <hr class="w-100"/>
-                    <h3>List and key</h3>
-                    <ul>
-                        {this.courses.map(course => {
-                            return <li key={course.id}>{course.name}</li>;
-                        })}
-                    </ul>
+                <hr class="w-100" />
+                <h3>List and key</h3>
+                <ul>
+                    {this.courses.map(course => {
+                        return <li key={course.id}>{course.name}</li>;
+                    })}
+                </ul>
             </Fragment>
         )
     }
@@ -191,7 +198,8 @@ export default class Welcome extends Component {
 // Prop validation
 Welcome.defaultProps = {
     name: "DefaultName",
-    propTypeTest: "two"
+    propTypeTest: "two",
+    afterChangeCount: () => { }
 }
 
 Welcome.propTypes = {
@@ -199,5 +207,13 @@ Welcome.propTypes = {
         PropTypes.string,
         PropTypes.number
     ]),
-    propTypeTest: PropTypes.oneOf(["one", "two"])
+    propTypeTest: PropTypes.oneOf(["one", "two"]),
+    afterChangeCount: PropTypes.func
 }
+
+// HOC (Higher order component)
+const WelcomeInstance = React.forwardRef((props, ref) => {
+    return (<Welcome innerRef={ref} {...props}></Welcome>);
+})
+
+export default WelcomeInstance;
